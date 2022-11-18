@@ -2,8 +2,10 @@ require('dotenv').config()
 const express = require('express')
 const ejs = require('ejs')
 const app = express()
-const mongoose = require('mongoose')
-const md5=require('md5')
+const bcrypt=require('bcrypt')
+const mongoose=require('mongoose')
+
+
 
 const userModel=require(__dirname+"/models/userModel")
 
@@ -30,15 +32,18 @@ app.get('/register', (req, res) => {
 
 app.post('/register' ,async(req,res)=>{
     const {username ,password}=req.body
-   await userModel.create({username:username ,password:md5(password)})
+    const salt= await bcrypt.genSalt(10)
+    console.log(salt)
+    const hashPassword =await bcrypt.hash(password,salt)
+   await userModel.create({username:username ,password:hashPassword})
    res.render('secrets')
 })
 
 app.post('/login' ,async(req,res)=>{
     let {username ,password}=req.body
-    password=md5(password)
     const check=await userModel.findOne({username:username})
-    if(check.password===password)
+    const checkPass=  await bcrypt.compare(password ,check.password)
+    if(checkPass)
    console.log("verified" ,check)
     res.render('secrets')
 })
