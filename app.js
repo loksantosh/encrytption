@@ -3,6 +3,7 @@ const express = require('express')
 const ejs = require('ejs')
 const app = express()
 const mongoose = require('mongoose')
+const md5=require('md5')
 
 const userModel=require(__dirname+"/models/userModel")
 
@@ -28,14 +29,17 @@ app.get('/register', (req, res) => {
 })
 
 app.post('/register' ,async(req,res)=>{
-   await userModel.create(req.body)
+    const {username ,password}=req.body
+   await userModel.create({username:username ,password:md5(password)})
    res.render('secrets')
 })
 
 app.post('/login' ,async(req,res)=>{
-    const {username ,password}=req.body
-    const check=await userModel.findOne({username:username ,password:password})
-   if(check)console.log("verified" ,check)
+    let {username ,password}=req.body
+    password=md5(password)
+    const check=await userModel.findOne({username:username})
+    if(check.password===password)
+   console.log("verified" ,check)
     res.render('secrets')
 })
 
